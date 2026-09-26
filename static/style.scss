@@ -1,0 +1,520 @@
+/* Yemekhane: forumun renk ve yazı değişkenlerini kullanır, koyu temaya uyar */
+/* Yazı açıkta siyah, koyuda beyaz; ikincil yazı aynı rengin saydamı, her iki temada da 7:1 üstü */
+.ymk {
+    --ymk-line: rgba(0, 0, 0, .12);
+    --ymk-hover: rgba(0, 0, 0, .045);
+    --ymk-ink: #000;
+    --ymk-ink2: rgba(0, 0, 0, .86);
+    --ymk-muted: rgba(0, 0, 0, .66);
+    --ymk-card: #fff;
+    --ymk-accent: var(--yu-solid, #1a73e8);
+    --ymk-tint: rgba(26, 115, 232, .06);
+    container-type: inline-size;
+    margin: 4px 0 24px;
+}
+
+[data-theme="dark"] .ymk {
+    --ymk-line: rgba(255, 255, 255, .12);
+    --ymk-hover: rgba(255, 255, 255, .07);
+    --ymk-ink: #fff;
+    --ymk-ink2: rgba(255, 255, 255, .92);
+    --ymk-muted: rgba(255, 255, 255, .72);
+    --ymk-card: #28292c;
+    --ymk-accent: #8ab4f8;
+    --ymk-tint: rgba(138, 180, 248, .1);
+}
+
+.ymk svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Ana sayfada kategorilerin yerini alırken liste gizlenir (bileşen ayarı) */
+body:has(.ymk[data-hide-categories]) .categories-list {
+    display: none;
+}
+
+/* Kenar çubuğu da boşsa kategori satırı tamamen kalkar, arada boşluk kalmaz */
+body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [data-widget-area="sidebar"].hidden) {
+    display: none;
+}
+
+/* ---------- Başlık: ad, gün ve oklar ---------- */
+.ymk-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ymk-head h2 {
+    margin: 0;
+    color: var(--ymk-ink);
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -.01em;
+}
+
+.ymk-day {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ymk-muted);
+    font-size: 13.5px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.ymk-day b {
+    color: var(--ymk-ink2);
+    font-weight: 600;
+}
+
+.ymk-spacer {
+    flex: 1;
+}
+
+.ymk-today {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--ymk-line);
+    border-radius: 999px;
+    background: none;
+    color: var(--ymk-accent);
+    font-size: 13.5px;
+    font-weight: 600;
+    transition: background-color .12s ease;
+}
+
+.ymk-today:hover {
+    background-color: var(--ymk-hover);
+}
+
+.ymk-nav {
+    display: flex;
+    gap: 6px;
+}
+
+.ymk-arrow {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--ymk-line);
+    border-radius: 50%;
+    background: none;
+    color: var(--ymk-ink2);
+    transition: background-color .12s ease, opacity .12s ease;
+}
+
+.ymk-arrow:hover:not(:disabled) {
+    background-color: var(--ymk-hover);
+}
+
+.ymk-arrow:disabled {
+    opacity: .35;
+    cursor: default;
+}
+
+.ymk button:focus-visible,
+.ymk a:focus-visible {
+    outline: 2px solid rgba(var(--bs-link-color-rgb), .6);
+    outline-offset: 2px;
+}
+
+/* ---------- Dar alanda öğün sekmeleri ---------- */
+.ymk-tabs {
+    display: none;
+    gap: 4px;
+    margin-bottom: 10px;
+    padding: 4px;
+    border-radius: 10px;
+    background-color: var(--ymk-hover);
+}
+
+.ymk-tab {
+    display: inline-flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 34px;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: var(--ymk-ink2);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ymk-tab[aria-selected="true"] {
+    background-color: var(--bs-body-bg);
+    box-shadow: 0 1px 2px rgba(16, 32, 42, .12);
+    color: var(--ymk-ink);
+    font-weight: 600;
+}
+
+[data-theme="dark"] .ymk-tab[aria-selected="true"] {
+    background-color: #35363a;
+    box-shadow: none;
+}
+
+/* ---------- Öğün kartları ---------- */
+.ymk-meals {
+    display: grid;
+    grid-template-columns: repeat(var(--ymk-cols, 3), minmax(0, 1fr));
+    gap: 12px;
+    transition: opacity .15s ease;
+}
+
+.ymk-meals.is-busy {
+    opacity: .4;
+}
+
+.ymk-meal {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 14px 16px 12px;
+    border: 1px solid var(--ymk-line);
+    border-radius: 12px;
+    background-color: var(--ymk-card);
+}
+
+.ymk-meal.is-now {
+    border-color: rgba(var(--bs-link-color-rgb), .45);
+    background-color: var(--ymk-tint);
+}
+
+.ymk-meal-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--ymk-ink);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ymk-meal-head svg {
+    color: var(--ymk-muted);
+}
+
+.ymk-meal.is-now .ymk-meal-head svg {
+    color: var(--ymk-accent);
+}
+
+.ymk-tag {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background-color: var(--ymk-hover);
+    color: var(--ymk-ink2);
+    font-size: 11.5px;
+    font-weight: 500;
+}
+
+/* Beyaz yazı düz mavi üstünde (#1a73e8, 4.6:1) */
+.ymk-now {
+    margin-left: auto;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background-color: #1a73e8;
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.ymk-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ymk-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: var(--ymk-ink2);
+    font-size: 14px;
+    line-height: 1.35;
+}
+
+.ymk-name {
+    flex: 1;
+    min-width: 0;
+}
+
+.ymk-list .is-ana {
+    color: var(--ymk-ink);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.ymk-kcal {
+    flex-shrink: 0;
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ymk-side {
+    margin: 12px 0 0;
+    padding-top: 10px;
+    border-top: 1px dashed var(--ymk-line);
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+    line-height: 1.45;
+}
+
+.ymk-empty {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 28px 16px;
+    border: 1px dashed var(--ymk-line);
+    border-radius: 12px;
+    color: var(--ymk-muted);
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ---------- Fiyatlar: solda set menü, sağda tek tek ---------- */
+.ymk-price {
+    display: flex;
+    gap: 20px;
+    margin-top: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--ymk-line);
+    border-radius: 12px;
+    background-color: var(--ymk-card);
+}
+
+.ymk-set {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    justify-content: center;
+    gap: 2px;
+    min-width: 150px;
+    padding-right: 20px;
+    border-right: 1px solid var(--ymk-line);
+}
+
+.ymk-set span {
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+}
+
+.ymk-set strong {
+    color: var(--ymk-ink);
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.ymk-set strong small {
+    margin-left: 3px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.ymk-alc {
+    flex: 1;
+    min-width: 0;
+}
+
+.ymk-alc-title {
+    margin: 0 0 8px;
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+}
+
+.ymk-alc dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px 24px;
+    margin: 0;
+}
+
+.ymk-alc dl div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.ymk-alc dt {
+    color: var(--ymk-ink2);
+    font-size: 13.5px;
+    font-weight: 400;
+}
+
+.ymk-alc dd {
+    flex-shrink: 0;
+    margin: 0;
+    color: var(--ymk-ink);
+    font-size: 13.5px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Ad ile fiyat arasında noktalı yol, göz satırı kaybetmesin */
+.ymk-alc dl div > i {
+    flex: 1;
+    min-width: 12px;
+    border-bottom: 1px dotted var(--ymk-line);
+    transform: translateY(-4px);
+}
+
+/* Dar alanda tek tek fiyatlar bu düğmeyle açılır */
+.ymk-alc-toggle {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ymk-ink2);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ymk-alc-toggle svg {
+    transition: transform .15s ease;
+}
+
+.ymk-price.is-open .ymk-alc-toggle svg {
+    transform: rotate(180deg);
+}
+
+.ymk-notes {
+    margin: 10px 0 0;
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+}
+
+/* ---------- Alt satır: uyarı ve kaynak ---------- */
+.ymk-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 14px;
+    margin-top: 10px;
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+}
+
+.ymk-foot b {
+    color: var(--ymk-ink2);
+    font-weight: 600;
+}
+
+.ymk-foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    color: var(--ymk-accent);
+    font-weight: 500;
+    text-decoration: none !important;
+}
+
+.ymk-foot a svg {
+    width: 14px;
+    height: 14px;
+}
+
+.ymk-foot a:hover {
+    text-decoration: underline !important;
+}
+
+@container (max-width: 620px) {
+    .ymk-tabs {
+        display: flex;
+    }
+
+    .ymk-meals {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ymk-meal:not(.is-shown) {
+        display: none;
+    }
+
+    .ymk-meal.is-now {
+        border-color: var(--ymk-line);
+        background-color: var(--ymk-card);
+    }
+
+    .ymk-meal-head {
+        display: none;
+    }
+
+    .ymk-foot a {
+        margin-left: 0;
+    }
+
+    .ymk-price {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    /* Set menü tek satırda: solda ad ve çeşit, sağda fiyat */
+    .ymk-set {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        column-gap: 12px;
+        min-width: 0;
+        padding: 0 0 12px;
+        border-right: 0;
+        border-bottom: 1px solid var(--ymk-line);
+    }
+
+    .ymk-set strong {
+        grid-row: 1 / span 2;
+        grid-column: 2;
+        font-size: 22px;
+    }
+
+    .ymk-alc-toggle {
+        display: flex;
+    }
+
+    .ymk-price:not(.is-open) .ymk-alc {
+        display: none;
+    }
+
+    .ymk-alc-title {
+        display: none;
+    }
+
+    .ymk-alc dl {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 7px;
+    }
+}
+
+@container (min-width: 621px) and (max-width: 860px) {
+    .ymk-alc dl {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container (max-width: 420px) {
+    .ymk-day b + span {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ymk-meals,
+    .ymk-alc-toggle svg {
+        transition: none;
+    }
+}

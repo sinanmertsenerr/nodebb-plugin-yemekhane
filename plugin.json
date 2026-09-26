@@ -1,0 +1,27 @@
+{
+	"id": "nodebb-plugin-yemekhane",
+	"name": "Yemekhane",
+	"description": "Daily cafeteria menu widget: breakfast, lunch and dinner with calories and prices",
+	"url": "https://github.com/sinanmertsenerr/nodebb-plugin-yemekhane",
+	"library": "./library.js",
+	"hooks": [
+		{ "hook": "static:app.load", "method": "init" },
+		{ "hook": "static:api.routes", "method": "addApiRoutes" },
+		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
+		{ "hook": "filter:widgets.getWidgets", "method": "defineWidgets" },
+		{ "hook": "filter:widget.render:yemekhane", "method": "renderWidget" }
+	],
+	"scss": [
+		"static/style.scss"
+	],
+	"scripts": [
+		"static/lib/render.js",
+		"static/lib/main.js"
+	],
+	"modules": {
+		"../admin/plugins/yemekhane.js": "static/lib/admin.js"
+	},
+	"templates": "static/templates",
+	"languages": "languages",
+	"defaultLang": "en-GB"
+}

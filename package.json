@@ -1,0 +1,49 @@
+{
+  "name": "nodebb-plugin-yemekhane",
+  "version": "1.0.0",
+  "description": "Daily cafeteria (yemekhane) menu widget for NodeBB: breakfast, lunch and dinner with calories and prices",
+  "main": "library.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sinanmertsenerr/nodebb-plugin-yemekhane.git"
+  },
+  "homepage": "https://github.com/sinanmertsenerr/nodebb-plugin-yemekhane#readme",
+  "bugs": {
+    "url": "https://github.com/sinanmertsenerr/nodebb-plugin-yemekhane/issues"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "nodebb",
+    "plugin",
+    "widget",
+    "yemekhane",
+    "cafeteria",
+    "menu",
+    "university",
+    "harmony"
+  ],
+  "author": "Sinan Mert Sener",
+  "license": "MIT",
+  "files": [
+    "library.js",
+    "plugin.json",
+    "lib/",
+    "static/",
+    "languages/",
+    "tools/",
+    "examples/",
+    "README.md",
+    "LICENSE"
+  ],
+  "nbbpm": {
+    "compatibility": "^4.15.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.0.0",
+    "eslint-config-nodebb": "^2.0.2"
+  }
+}
