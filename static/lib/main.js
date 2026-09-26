@@ -72,9 +72,7 @@
 		// Kısa bir soluklaşma ile yeni günü çizer; başka ayın verisi gerekiyorsa önce onu getirir
 		async function go(date) {
 			st.date = date;
-			if (date === st.slot.date) {
-				st.meal = Y.defaultMeal(st);
-			}
+			st.meal = Y.mealFor(st, date);
 			meals.classList.add('is-busy');
 			update();
 			const ay = date.slice(0, 7);
@@ -112,9 +110,11 @@
 			} else if (arrow && !arrow.disabled) {
 				go(Y.addDays(st.date, Number(arrow.dataset.dir)));
 			} else if (e.target.closest('.ymk-today')) {
+				st.userMeal = null;
 				go(st.slot.date);
 			} else if (tab) {
 				st.meal = tab.dataset.meal;
+				st.userMeal = st.meal;
 				update();
 			}
 		});
@@ -133,6 +133,7 @@
 			const list = Y.visibleMeals(st.opts);
 			const i = list.indexOf(st.meal);
 			st.meal = list[(i + (e.key === 'ArrowRight' ? 1 : list.length - 1)) % list.length];
+			st.userMeal = st.meal;
 			update();
 			$(`#${st.id}-t-${st.meal}`).focus();
 		});

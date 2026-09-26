@@ -13,10 +13,10 @@
 	const TZ = 'Europe/Istanbul';
 	const MEALS = ['kahvalti', 'ogle', 'aksam'];
 	const MEAL_KEY = { kahvalti: 'breakfast', ogle: 'lunch', aksam: 'dinner' };
-	// Öğün sınırları (İstanbul saati, dakika): 10.30'a kadar kahvaltı, 15.00'e kadar öğle, 21.00'e kadar akşam
+	// Öğün sınırları (İstanbul saati, dakika): 10.30'a kadar kahvaltı, 15.00'e kadar öğle, 20.00'ye kadar akşam
 	const LUNCH_FROM = (10 * 60) + 30;
 	const DINNER_FROM = 15 * 60;
-	const DAY_ENDS = 21 * 60;
+	const DAY_ENDS = 20 * 60;
 	const MAX_DISTANCE = 62;
 
 	const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -44,7 +44,7 @@
 
 	const daysBetween = (a, b) => Math.round((toDate(b) - toDate(a)) / 864e5);
 
-	// İstanbul saatine göre bugün ve sıradaki öğün; 21.00'den sonra yarının kahvaltısı
+	// İstanbul saatine göre bugün ve sıradaki öğün; akşam yemeği bitince yarının kahvaltısı
 	function slotNow(now) {
 		const parts = new Intl.DateTimeFormat('en-CA', {
 			timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
@@ -63,6 +63,19 @@
 	function defaultMeal(st) {
 		const meals = visibleMeals(st.opts);
 		return meals.includes(st.slot.meal) ? st.slot.meal : meals[0];
+	}
+
+	// Başka bir güne geçince hangi öğün açılsın: kullanıcı sekme seçtiyse o kalır;
+	// seçmediyse ileri günlerde ilk öğün (sıradaki yemek kahvaltı), bugün ve geçmişte şimdiki öğün
+	function mealFor(st, date) {
+		const meals = visibleMeals(st.opts);
+		if (date === st.slot.date) {
+			return defaultMeal(st);
+		}
+		if (st.userMeal && meals.includes(st.userMeal)) {
+			return st.userMeal;
+		}
+		return date > st.slot.date ? meals[0] : defaultMeal(st);
 	}
 
 	function formatter(lang, options) {
@@ -229,7 +242,7 @@
 	}
 
 	return {
-		MEALS, addDays, slotNow, nearDays, defaultMeal, visibleMeals, dayState, canGo,
+		MEALS, addDays, slotNow, nearDays, defaultMeal, mealFor, visibleMeals, dayState, canGo,
 		dayLabelHTML, tabsHTML, mealsHTML, extraHTML, section,
 	};
 }));

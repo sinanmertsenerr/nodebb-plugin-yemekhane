@@ -14,7 +14,8 @@ test('öğün sınırları İstanbul saatine göre', () => {
 	assert.deepEqual(Y.slotNow(at('2026-09-26T07:29:00Z')), { today: '2026-09-26', date: '2026-09-26', meal: 'kahvalti' });
 	assert.equal(Y.slotNow(at('2026-09-26T07:30:00Z')).meal, 'ogle');
 	assert.equal(Y.slotNow(at('2026-09-26T12:00:00Z')).meal, 'aksam');
-	assert.deepEqual(Y.slotNow(at('2026-09-26T18:00:00Z')), { today: '2026-09-26', date: '2026-09-27', meal: 'kahvalti' });
+	assert.equal(Y.slotNow(at('2026-09-26T16:59:00Z')).meal, 'aksam');
+	assert.deepEqual(Y.slotNow(at('2026-09-26T17:00:00Z')), { today: '2026-09-26', date: '2026-09-27', meal: 'kahvalti' });
 	assert.deepEqual(Y.slotNow(at('2026-09-30T21:30:00Z')), { today: '2026-10-01', date: '2026-10-01', meal: 'kahvalti' });
 });
 
@@ -84,4 +85,17 @@ test('sayfaya yakın günler gömülür, uzak gün istenince getirilir', () => {
 	assert.equal(Y.canGo(st, -1), true);
 	assert.equal(Y.nearDays(example, '2026-09-26').gunler['2026-09-23'], undefined);
 	assert.equal(Y.nearDays({ gunler: { '2026-09-26': {} } }, '2026-09-26').partial, undefined);
+});
+
+test('gün değişince açılan öğün', () => {
+	const st = state({ today: '2026-09-26', date: '2026-09-26', meal: 'aksam' });
+	assert.equal(Y.mealFor(st, '2026-09-27'), 'kahvalti');
+	assert.equal(Y.mealFor(st, '2026-09-25'), 'aksam');
+	assert.equal(Y.mealFor(st, '2026-09-26'), 'aksam');
+	st.userMeal = 'ogle';
+	assert.equal(Y.mealFor(st, '2026-09-27'), 'ogle');
+	assert.equal(Y.mealFor(st, '2026-09-26'), 'aksam');
+	st.userMeal = null;
+	st.opts = { hideBreakfast: true };
+	assert.equal(Y.mealFor(st, '2026-09-27'), 'ogle');
 });

@@ -2,7 +2,7 @@
 
 A widget that shows the day's cafeteria menu on your forum: breakfast, lunch and dinner, with calories and prices. Built for [Yaşar Forum](https://yu.uniforum.app) (Yaşar University), but the menu format is plain JSON, so any cafeteria can use it.
 
-- The three meals sit side by side. The next meal is highlighted using Istanbul time (breakfast until 10:30, lunch until 15:00, dinner until 21:00, then tomorrow's breakfast).
+- The three meals sit side by side. The next meal is highlighted using Istanbul time (breakfast until 10:30, lunch until 15:00, dinner until 20:00, then tomorrow's breakfast). Moving to a later day opens its breakfast unless the visitor picked a meal tab.
 - Arrows move between days. Other months load on demand.
 - Main dishes stand out, and the side dishes served every day are grouped into one line.
 - The set menu price and the à la carte prices are shown in their own box.
