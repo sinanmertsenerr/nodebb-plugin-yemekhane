@@ -94,7 +94,7 @@ plugin.renderWidget = async function (widget) {
 			hidePrices: widget.data.hidePrices === 'on',
 		},
 		available,
-		months: month ? { [ay]: publicMonth(month) } : {},
+		months: month ? { [ay]: Yemekhane.nearDays(publicMonth(month), slot.date) } : {},
 		hideCategories: home && widget.data.hideCategories === 'on',
 	};
 	st.meal = Yemekhane.defaultMeal(st);

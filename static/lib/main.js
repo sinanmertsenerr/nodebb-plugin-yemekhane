@@ -41,16 +41,32 @@
 			$('.ymk-extra').innerHTML = Y.extraHTML(st);
 		}
 
-		async function loadMonth(ay) {
-			if (st.months[ay] !== undefined || !st.available.includes(ay)) {
-				return;
+		// Ayın tamamını bir kez getirir; aynı anda gelen istekler tek isteği bekler
+		const pending = {};
+		function loadMonth(ay) {
+			const current = st.months[ay];
+			if (!st.available.includes(ay) || (current !== undefined && !(current && current.partial))) {
+				return Promise.resolve();
 			}
-			try {
-				const res = await fetch(monthURL(ay), { credentials: 'same-origin', headers: { accept: 'application/json' } });
-				st.months[ay] = res.ok ? (await res.json()).response : null;
-			} catch (err) {
-				st.months[ay] = null;
+			if (!pending[ay]) {
+				pending[ay] = fetch(monthURL(ay), { credentials: 'same-origin', headers: { accept: 'application/json' } })
+					.then(res => (res.ok ? res.json() : null))
+					.then((body) => {
+						st.months[ay] = body && body.response ? body.response : failed(current);
+					})
+					.catch(() => {
+						st.months[ay] = failed(current);
+					})
+					.finally(() => {
+						delete pending[ay];
+					});
 			}
+			return pending[ay];
+		}
+
+		// Getirme başarısızsa eldeki günlerle devam edilir, sonsuz "getiriliyor" kalmaz
+		function failed(current) {
+			return current ? Object.assign({}, current, { partial: false }) : null;
 		}
 
 		// Kısa bir soluklaşma ile yeni günü çizer; başka ayın verisi gerekiyorsa önce onu getirir
@@ -102,6 +118,12 @@
 				update();
 			}
 		});
+
+		// Oklara yaklaşınca ayın tamamı önceden gelsin, tıklayınca beklemek gerekmesin
+		const nav = $('.ymk-nav');
+		const prefetch = () => loadMonth(st.date.slice(0, 7));
+		nav.addEventListener('pointerenter', prefetch, { once: true });
+		nav.addEventListener('focusin', prefetch, { once: true });
 
 		// Sekmelerde ok tuşlarıyla gezinme (WAI-ARIA sekme kalıbı)
 		root.addEventListener('keydown', (e) => {

@@ -84,7 +84,8 @@
 		if (month && month.gunler && month.gunler[iso]) {
 			return 'ok';
 		}
-		if (month === undefined && st.available.includes(ay)) {
+		// Sayfaya ayın sadece yakın günleri gömülür (partial); gerisi okla gidilince getirilir
+		if ((month === undefined || (month && month.partial)) && st.available.includes(ay)) {
 			return 'loading';
 		}
 		return 'none';
@@ -214,8 +215,21 @@
 		</section>`;
 	}
 
+	// Bugünün iki gün öncesinden altı gün sonrasına kadarki günler; ayın geri kalanı istenince yüklenir
+	function nearDays(month, date) {
+		const from = addDays(date, -2);
+		const to = addDays(date, 6);
+		const all = Object.keys(month.gunler || {});
+		const keep = all.filter(d => d >= from && d <= to);
+		const gunler = {};
+		keep.forEach((d) => {
+			gunler[d] = month.gunler[d];
+		});
+		return Object.assign({}, month, { gunler }, keep.length < all.length ? { partial: true } : {});
+	}
+
 	return {
-		MEALS, addDays, slotNow, defaultMeal, visibleMeals, dayState, canGo,
+		MEALS, addDays, slotNow, nearDays, defaultMeal, visibleMeals, dayState, canGo,
 		dayLabelHTML, tabsHTML, mealsHTML, extraHTML, section,
 	};
 }));

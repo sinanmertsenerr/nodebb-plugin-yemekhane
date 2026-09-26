@@ -72,3 +72,16 @@ test('tek tek fiyatlar düğmesi kapalı başlar, açık durum korunur', () => {
 	assert.match(Y.extraHTML(st), /<div class="ymk-price is-open">[\s\S]*aria-expanded="true"/);
 	assert.doesNotMatch(Y.extraHTML(Object.assign(st, { opts: { hidePrices: true } })), /ymk-price/);
 });
+
+test('sayfaya yakın günler gömülür, uzak gün istenince getirilir', () => {
+	const near = Y.nearDays(example, '2026-09-26');
+	assert.deepEqual(Object.keys(near.gunler), ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30']);
+	assert.equal(near.partial, true);
+	assert.deepEqual(near.fiyat, example.fiyat);
+	const st = state({ today: '2026-09-26', date: '2026-09-26', meal: 'ogle' }, { months: { '2026-09': near } });
+	assert.equal(Y.dayState(st, '2026-09-26'), 'ok');
+	assert.equal(Y.dayState(st, '2026-09-10'), 'loading');
+	assert.equal(Y.canGo(st, -1), true);
+	assert.equal(Y.nearDays(example, '2026-09-26').gunler['2026-09-23'], undefined);
+	assert.equal(Y.nearDays({ gunler: { '2026-09-26': {} } }, '2026-09-26').partial, undefined);
+});
