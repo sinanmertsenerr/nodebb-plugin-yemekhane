@@ -214,15 +214,39 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     font-weight: 500;
 }
 
+/* Öğün saati başlığın sağında, rozetin solunda */
+.ymk-hours {
+    margin-left: auto;
+    color: var(--ymk-muted);
+    font-size: 12.5px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ymk-meal.is-now .ymk-hours {
+    color: var(--ymk-ink2);
+}
+
 /* Beyaz yazı düz mavi üstünde (#1a73e8, 4.6:1) */
 .ymk-now {
-    margin-left: auto;
     padding: 2px 9px;
     border-radius: 999px;
     background-color: #1a73e8;
     color: #fff;
     font-size: 11.5px;
     font-weight: 600;
+}
+
+/* Sıradaki: açık zeminde koyu mavi yazı (#1557b0, 6:1 üstü) */
+.ymk-now.is-next {
+    background-color: rgba(26, 115, 232, .12);
+    color: #1557b0;
+}
+
+[data-theme="dark"] .ymk-now.is-next {
+    background-color: rgba(138, 180, 248, .16);
+    color: #8ab4f8;
 }
 
 .ymk-list {
@@ -451,8 +475,23 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
         background-color: var(--ymk-card);
     }
 
+    /* Dar alanda öğün adı sekmede; başlıkta saat ve rozet kalır */
     .ymk-meal-head {
+        margin-bottom: 8px;
+    }
+
+    .ymk-meal-head > svg,
+    .ymk-meal-name,
+    .ymk-meal-head .ymk-tag {
         display: none;
+    }
+
+    .ymk-hours {
+        margin-left: 0;
+    }
+
+    .ymk-now {
+        margin-left: auto;
     }
 
     .ymk-foot a {

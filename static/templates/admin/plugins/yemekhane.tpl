@@ -19,6 +19,22 @@
 				</div>
 			</div>
 
+			<h5 class="fw-bold tracking-tight settings-header mt-5">{{tx("yemekhane:admin.hours")}}</h5>
+			<p class="text-secondary">{{tx("yemekhane:admin.hours-help")}}</p>
+			<form id="yemekhane-hours" class="d-flex flex-column gap-2" style="max-width: 420px;">
+				{{{ each hours }}}
+				<div class="d-flex align-items-center gap-2" data-meal="{./meal}">
+					<span class="fw-semibold" style="width: 90px;">{{tx(./label)}}</span>
+					<input type="time" class="form-control form-control-sm" name="from" value="{./from}" step="300" aria-label="{{tx("yemekhane:admin.from")}}" required>
+					<span class="text-secondary">–</span>
+					<input type="time" class="form-control form-control-sm" name="to" value="{./to}" step="300" aria-label="{{tx("yemekhane:admin.to")}}" required>
+				</div>
+				{{{ end }}}
+				<div class="mt-1">
+					<button type="submit" class="btn btn-primary btn-sm fw-semibold">{{tx("yemekhane:admin.save-hours")}}</button>
+				</div>
+			</form>
+
 			<h5 class="fw-bold tracking-tight settings-header mt-5">{{tx("yemekhane:admin.months")}}</h5>
 			{{{ if months.length }}}
 			<div class="table-responsive">

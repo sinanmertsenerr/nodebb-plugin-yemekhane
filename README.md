@@ -2,7 +2,7 @@
 
 A widget that shows the day's cafeteria menu on your forum: breakfast, lunch and dinner, with calories and prices. Built for [Yaşar Forum](https://yu.uniforum.app) (Yaşar University), but the menu format is plain JSON, so any cafeteria can use it.
 
-- The three meals sit side by side. The next meal is highlighted using Istanbul time (breakfast until 10:30, lunch until 15:00, dinner until 20:00, then tomorrow's breakfast). Moving to a later day opens its breakfast unless the visitor picked a meal tab.
+- The three meals sit side by side, each with its serving hours. The current meal says "Now" while it is served and "Next" before it, using Istanbul time; after the last meal the widget moves to tomorrow's breakfast. Moving to a later day opens its breakfast unless the visitor picked a meal tab.
 - Arrows move between days. Other months load on demand.
 - Main dishes stand out, and the side dishes served every day are grouped into one line.
 - The set menu price and the à la carte prices are shown in their own box.
@@ -29,6 +29,10 @@ Activate the plugin in the ACP, then rebuild and restart NodeBB.
    - **Hide breakfast** and **Hide prices.**
 
 When no menu has been uploaded yet, the widget renders nothing.
+
+### Meal hours
+
+Set them on the same ACP page. The defaults come from Yaşar University's 2025-2026 student handbook: breakfast 07:00–10:00, lunch 12:00–14:00, dinner 18:30–20:30. Each meal must start before it ends, and meals must not overlap.
 
 ## Monthly menu from a PDF
 
@@ -85,6 +89,7 @@ The script finds the lunch, dinner and dormitory breakfast pages by their titles
 | `GET` | `/api/v3/plugins/yemekhane/aylar/:ay` | Everyone |
 | `PUT` | `/api/v3/plugins/yemekhane/aylar/:ay` (JSON body) | Administrators |
 | `DELETE` | `/api/v3/plugins/yemekhane/aylar/:ay` | Administrators |
+| `PUT` | `/api/v3/plugins/yemekhane/saatler` (`{ "kahvalti": { "from": "07:00", "to": "10:00" }, … }`) | Administrators |
 
 Uploads are validated. Unknown fields are dropped, and errors say which day or dish is wrong.
 

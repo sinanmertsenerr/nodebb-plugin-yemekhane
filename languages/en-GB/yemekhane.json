@@ -69,5 +69,13 @@
 	"error.bad-length": "Empty or longer than %2 characters: %1",
 	"error.bad-kcal": "Invalid calorie value: %1",
 	"error.bad-prices": "Invalid price information.",
-	"error.bad-source": "The source link must start with http:// or https://."
+	"error.bad-source": "The source link must start with http:// or https://.",
+
+	"admin.hours": "Meal hours",
+	"admin.hours-help": "The widget shows these hours next to each meal. It says \"Now\" while a meal is served and \"Next\" before it, and moves to tomorrow after the last meal.",
+	"admin.from": "From",
+	"admin.to": "To",
+	"admin.save-hours": "Save hours",
+	"admin.hours-saved": "Hours saved.",
+	"error.bad-hours": "Invalid hours (%1). Each meal must start before it ends, and meals must follow each other without overlapping."
 }

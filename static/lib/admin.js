@@ -28,6 +28,13 @@ define('admin/plugins/yemekhane', ['api', 'alerts', 'translator', 'bootbox'], fu
 
 		input.addEventListener('change', () => onFile(input));
 		saveBtn.addEventListener('click', () => save(saveBtn));
+		const hoursForm = document.getElementById('yemekhane-hours');
+		if (hoursForm) {
+			hoursForm.addEventListener('submit', (e) => {
+				e.preventDefault();
+				saveHours(hoursForm);
+			});
+		}
 		page.addEventListener('click', (e) => {
 			const btn = e.target.closest('[data-action="delete"]');
 			if (btn) {
@@ -81,6 +88,26 @@ define('admin/plugins/yemekhane', ['api', 'alerts', 'translator', 'bootbox'], fu
 			await api.put(`/plugins/yemekhane/aylar/${encodeURIComponent(pending.ay)}`, pending);
 			alerts.success(await tr('[[yemekhane:admin.saved]]'));
 			ajaxify.refresh();
+		} catch (err) {
+			alerts.error(await tr(err.message || String(err)));
+		} finally {
+			btn.disabled = false;
+		}
+	}
+
+	async function saveHours(form) {
+		const hours = {};
+		form.querySelectorAll('[data-meal]').forEach((row) => {
+			hours[row.dataset.meal] = {
+				from: row.querySelector('[name="from"]').value,
+				to: row.querySelector('[name="to"]').value,
+			};
+		});
+		const btn = form.querySelector('[type="submit"]');
+		btn.disabled = true;
+		try {
+			await api.put('/plugins/yemekhane/saatler', hours);
+			alerts.success(await tr('[[yemekhane:admin.hours-saved]]'));
 		} catch (err) {
 			alerts.error(await tr(err.message || String(err)));
 		} finally {

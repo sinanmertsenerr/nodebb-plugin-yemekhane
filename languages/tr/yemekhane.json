@@ -69,5 +69,13 @@
 	"error.bad-length": "Boş ya da %2 karakterden uzun: %1",
 	"error.bad-kcal": "Kalori değeri geçersiz: %1",
 	"error.bad-prices": "Fiyat bilgisi geçersiz.",
-	"error.bad-source": "Kaynak bağlantısı http:// ya da https:// ile başlamalı."
+	"error.bad-source": "Kaynak bağlantısı http:// ya da https:// ile başlamalı.",
+
+	"admin.hours": "Öğün saatleri",
+	"admin.hours-help": "Bileşen her öğünün yanında bu saatleri gösterir. Yemek verilirken \"Şimdi\", öncesinde \"Sıradaki\" yazar; son öğün bitince yarının menüsüne geçer.",
+	"admin.from": "Başlangıç",
+	"admin.to": "Bitiş",
+	"admin.save-hours": "Saatleri kaydet",
+	"admin.hours-saved": "Saatler kaydedildi.",
+	"error.bad-hours": "Saatler geçersiz (%1). Her öğün bitişten önce başlamalı ve öğünler sırayla, çakışmadan gelmeli."
 }

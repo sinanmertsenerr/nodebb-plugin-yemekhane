@@ -38,6 +38,12 @@ plugin.addApiRoutes = async function ({ router, middleware, helpers }) {
 		helpers.formatApiResponse(200, res, summary);
 	});
 
+	routeHelpers.setupApiRoute(router, 'put', '/yemekhane/saatler', adminOnly, async (req, res) => {
+		const hours = await menu.saveHours(req.body);
+		winston.info(`[plugin/yemekhane] uid ${req.uid} saved meal hours`);
+		helpers.formatApiResponse(200, res, hours);
+	});
+
 	routeHelpers.setupApiRoute(router, 'delete', '/yemekhane/aylar/:ay', adminOnly, async (req, res) => {
 		await menu.deleteMonth(req.params.ay);
 		winston.info(`[plugin/yemekhane] uid ${req.uid} deleted ${req.params.ay}`);
@@ -76,7 +82,8 @@ plugin.renderWidget = async function (widget) {
 		return null;
 	}
 
-	const slot = Yemekhane.slotNow();
+	const hours = Yemekhane.normalizeHours(await menu.getHours());
+	const slot = Yemekhane.slotNow(null, hours);
 	const ay = slot.date.slice(0, 7);
 	const month = await menu.getMonth(ay);
 	const lang = getLang(widget);
@@ -88,6 +95,7 @@ plugin.renderWidget = async function (widget) {
 		lang,
 		title: widget.data.title || '',
 		slot,
+		hours,
 		date: slot.date,
 		opts: {
 			hideBreakfast: widget.data.hideBreakfast === 'on',
@@ -114,8 +122,10 @@ async function renderAdminPage(req, res) {
 			updated: row.guncelleme ? dateTimeLabel(row.guncelleme, lang) : '',
 		}));
 	const current = Yemekhane.slotNow().today.slice(0, 7);
+	const hours = Yemekhane.normalizeHours(await menu.getHours());
 
 	res.render('admin/plugins/yemekhane', {
+		hours: Yemekhane.MEALS.map(meal => ({ meal, label: `yemekhane:${{ kahvalti: 'breakfast', ogle: 'lunch', aksam: 'dinner' }[meal]}`, from: hours[meal].from, to: hours[meal].to })),
 		title: 'yemekhane:admin.title',
 		hideSave: true,
 		months,

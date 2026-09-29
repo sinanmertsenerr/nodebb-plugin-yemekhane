@@ -83,3 +83,13 @@ test('kaydet, oku, listele, sil', async () => {
 	assert.deepEqual(await menu.listMonths(), []);
 	assert.equal(await menu.getMonth('2026-09'), null);
 });
+
+test('öğün saatleri doğrulanır ve kaydedilir', async () => {
+	const ok = { kahvalti: { from: '07:00', to: '10:00' }, ogle: { from: '11:30', to: '14:30' }, aksam: { from: '18:30', to: '20:30' } };
+	assert.deepEqual(await menu.saveHours(ok), ok);
+	assert.deepEqual(await menu.getHours(), ok);
+	assert.throws(() => menu.validateHours({ ...ok, ogle: { from: '14:30', to: '11:30' } }), /bad-hours, ogle/);
+	assert.throws(() => menu.validateHours({ ...ok, ogle: { from: '09:00', to: '12:00' } }), /bad-hours, ogle/);
+	assert.throws(() => menu.validateHours({ ...ok, aksam: { from: '25:00', to: '26:00' } }), /bad-hours, aksam/);
+	assert.throws(() => menu.validateHours(null), /bad-hours/);
+});

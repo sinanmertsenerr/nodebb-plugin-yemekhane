@@ -13,10 +13,14 @@
 	const TZ = 'Europe/Istanbul';
 	const MEALS = ['kahvalti', 'ogle', 'aksam'];
 	const MEAL_KEY = { kahvalti: 'breakfast', ogle: 'lunch', aksam: 'dinner' };
-	// Öğün sınırları (İstanbul saati, dakika): 10.30'a kadar kahvaltı, 15.00'e kadar öğle, 20.00'ye kadar akşam
-	const LUNCH_FROM = (10 * 60) + 30;
-	const DINNER_FROM = 15 * 60;
-	const DAY_ENDS = 20 * 60;
+	// Öğün saatleri (İstanbul saati). Varsayılanlar Yaşar Üniversitesi 2025-2026 Öğrenci El Kitabı'ndan;
+	// yönetim sayfasından değiştirilebilir.
+	const DEFAULT_HOURS = {
+		kahvalti: { from: '07:00', to: '10:00' },
+		ogle: { from: '12:00', to: '14:00' },
+		aksam: { from: '18:30', to: '20:30' },
+	};
+	const HHMM = /^([01]\d|2[0-3]):([0-5]\d)$/;
 	const MAX_DISTANCE = 62;
 
 	const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -44,18 +48,34 @@
 
 	const daysBetween = (a, b) => Math.round((toDate(b) - toDate(a)) / 864e5);
 
-	// İstanbul saatine göre bugün ve sıradaki öğün; akşam yemeği bitince yarının kahvaltısı
-	function slotNow(now) {
+	const minutes = hhmm => (Number(hhmm.slice(0, 2)) * 60) + Number(hhmm.slice(3, 5));
+
+	// Eksik ya da bozuk saatler varsayılana döner
+	function normalizeHours(hours) {
+		const out = {};
+		MEALS.forEach((m) => {
+			const h = hours && hours[m];
+			out[m] = h && HHMM.test(h.from) && HHMM.test(h.to) && minutes(h.from) < minutes(h.to) ?
+				{ from: h.from, to: h.to } : Object.assign({}, DEFAULT_HOURS[m]);
+		});
+		return out;
+	}
+
+	// İstanbul saatine göre bugün ve sıradaki öğün. Öğün verilirken durum "now", öncesinde "next";
+	// günün son öğünü bitince yarının kahvaltısı sıradakidir.
+	function slotNow(now, hours) {
+		const h = normalizeHours(hours);
 		const parts = new Intl.DateTimeFormat('en-CA', {
 			timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
 		}).formatToParts(now || new Date());
 		const get = type => parts.find(p => p.type === type).value;
 		const today = `${get('year')}-${get('month')}-${get('day')}`;
 		const min = (Number(get('hour')) * 60) + Number(get('minute'));
-		if (min >= DAY_ENDS) {
-			return { today, date: addDays(today, 1), meal: 'kahvalti' };
+		const meal = MEALS.find(m => min < minutes(h[m].to));
+		if (!meal) {
+			return { today, date: addDays(today, 1), meal: MEALS[0], status: 'next' };
 		}
-		return { today, date: today, meal: min < LUNCH_FROM ? 'kahvalti' : (min < DINNER_FROM ? 'ogle' : 'aksam') };
+		return { today, date: today, meal, status: min >= minutes(h[meal].from) ? 'now' : 'next' };
 	}
 
 	const visibleMeals = opts => MEALS.filter(m => !(m === 'kahvalti' && opts && opts.hideBreakfast));
@@ -132,16 +152,31 @@
 		}).join('');
 	}
 
+	// Bu öğüne rozet düşer mi: bakılan gün sıradaki günse ve öğün sıradaki (gizli kahvaltı yerine öğle) ise
+	function pillFor(st, m) {
+		if (st.date !== st.slot.date || m !== defaultMeal(st)) {
+			return null;
+		}
+		return m === st.slot.meal ? st.slot.status : 'next';
+	}
+
+	// 07:00 → 07.00 (Türkçede saat noktayla yazılır)
+	function clock(st, hhmm) {
+		return /^tr\b/i.test(st.lang || '') ? hhmm.replace(':', '.') : hhmm;
+	}
+
 	function mealHTML(st, m, items, tag) {
-		const isNow = st.date === st.slot.date && m === st.slot.meal;
+		const status = pillFor(st, m);
+		const isNow = !!status;
+		const hours = normalizeHours(st.hours)[m];
 		const main = items.filter(i => i.tur !== 'sabit');
 		const side = items.filter(i => i.tur === 'sabit').map(i => i.ad);
-		const pill = isNow ? `<span class="ymk-now">${esc(st.slot.date === st.slot.today ? st.t.now : st.t['next-meal'])}</span>` : '';
+		const pill = status ? `<span class="ymk-now${status === 'next' ? ' is-next' : ''}">${esc(status === 'now' ? st.t.now : st.t['next-meal'])}</span>` : '';
 		const list = main.length ?
 			`<ul class="ymk-list">${main.map(i => `<li class="is-${esc(i.tur)}"><span class="ymk-name">${esc(i.ad)}</span>${i.kcal != null ? `<span class="ymk-kcal">${esc(fmt(st.t.kcal, i.kcal))}</span>` : ''}</li>`).join('')}</ul>` :
 			`<p class="ymk-side">${esc(st.t['no-meal'])}</p>`;
 		return `<article class="ymk-meal${isNow ? ' is-now' : ''}${m === st.meal ? ' is-shown' : ''}" id="${st.id}-p-${m}" role="tabpanel" aria-labelledby="${st.id}-t-${m}">
-			<div class="ymk-meal-head">${ICON[m]}<span>${esc(st.t[MEAL_KEY[m]])}</span>${tag ? `<span class="ymk-tag">${esc(tag)}</span>` : ''}${pill}</div>
+			<div class="ymk-meal-head">${ICON[m]}<span class="ymk-meal-name">${esc(st.t[MEAL_KEY[m]])}</span>${tag ? `<span class="ymk-tag">${esc(tag)}</span>` : ''}<span class="ymk-hours">${esc(clock(st, hours.from))}–${esc(clock(st, hours.to))}</span>${pill}</div>
 			${list}
 			${side.length ? `<p class="ymk-side">${esc(fmt(st.t.side, side.join(', ')))}</p>` : ''}
 		</article>`;
@@ -204,7 +239,7 @@
 	// Tarayıcıya giden durum: </script> ile kapanmasın diye < kaçırılır
 	function stateJSON(st) {
 		return JSON.stringify({
-			t: st.t, lang: st.lang, opts: st.opts, available: st.available, months: st.months,
+			t: st.t, lang: st.lang, opts: st.opts, hours: st.hours, available: st.available, months: st.months,
 		}).replace(/</g, '\\u003c');
 	}
 
@@ -242,7 +277,8 @@
 	}
 
 	return {
-		MEALS, addDays, slotNow, nearDays, defaultMeal, mealFor, visibleMeals, dayState, canGo,
+		MEALS, DEFAULT_HOURS, normalizeHours, addDays, slotNow, nearDays,
+		defaultMeal, mealFor, visibleMeals, dayState, canGo,
 		dayLabelHTML, tabsHTML, mealsHTML, extraHTML, section,
 	};
 }));

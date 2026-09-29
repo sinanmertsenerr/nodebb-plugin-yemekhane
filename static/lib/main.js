@@ -23,7 +23,7 @@
 		}
 		root.dataset.mounted = '1';
 
-		const st = Object.assign(saved, { id: root.id, slot: Y.slotNow() });
+		const st = Object.assign(saved, { id: root.id, slot: Y.slotNow(null, saved.hours) });
 		st.date = st.slot.date;
 		st.meal = Y.defaultMeal(st);
 		const $ = sel => root.querySelector(sel);
@@ -86,8 +86,8 @@
 		}
 
 		function refreshSlot() {
-			const slot = Y.slotNow();
-			if (slot.date === st.slot.date && slot.meal === st.slot.meal) {
+			const slot = Y.slotNow(null, st.hours);
+			if (slot.date === st.slot.date && slot.meal === st.slot.meal && slot.status === st.slot.status) {
 				return;
 			}
 			const wasDefault = st.date === st.slot.date;
@@ -147,11 +147,8 @@
 		document.querySelectorAll('.ymk[data-ymk]:not([data-mounted])').forEach(mount);
 	}
 
-	// Sekme uzun süre açık kaldıysa geri gelince "Şimdi" doğru öğünü göstersin
-	document.addEventListener('visibilitychange', () => {
-		if (document.visibilityState !== 'visible') {
-			return;
-		}
+	// Sayfa açık dururken ya da sekmeye geri dönülünce "Şimdi / Sıradaki" saate göre güncellenir
+	function refreshAll() {
 		instances.forEach((inst) => {
 			if (!inst.root.isConnected) {
 				instances.delete(inst);
@@ -159,7 +156,17 @@
 				inst.refreshSlot();
 			}
 		});
+	}
+	document.addEventListener('visibilitychange', () => {
+		if (document.visibilityState === 'visible') {
+			refreshAll();
+		}
 	});
+	setInterval(() => {
+		if (document.visibilityState === 'visible') {
+			refreshAll();
+		}
+	}, 60 * 1000);
 
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', mountAll);
