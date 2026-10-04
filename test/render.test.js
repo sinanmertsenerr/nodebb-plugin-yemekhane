@@ -46,7 +46,9 @@ test('hafta içi öğlen: üç öğün, ana yemek ve Şimdi rozeti', () => {
 	assert.equal((html.match(/<article class="ymk-meal/g) || []).length, 3);
 	assert.match(html, /class="is-ana"><span class="ymk-name">Et Döner \+ Patates Kızartması/);
 	assert.match(html, /<span class="ymk-hours">12\.00–14\.00<\/span><span class="ymk-now">Şimdi<\/span>/);
-	assert.match(html, /<b>Bugün<\/b><span> · 24 Eylül Perşembe<\/span>/);
+	assert.match(html, /<b>Bugün<\/b><span> · 24 Eylül <span class="ymk-wd">Perşembe<\/span><\/span>/);
+	// Gün, onu değiştiren iki okun arasında
+	assert.match(html, /<div class="ymk-nav">\s*<button[^>]*data-dir="-1"[\s\S]*?<\/button>\s*<span class="ymk-day"[^>]*>[\s\S]*?<\/span><\/span><\/span>\s*<button[^>]*data-dir="1"/);
 	assert.match(html, /Yanında: Yoğurt\/Ayran, Mevsim Salatası, Mevsim Meyvesi \(2 Çeşit\)/);
 	assert.match(html, /202,50<small>TL<\/small>/);
 });
@@ -126,4 +128,11 @@ test('rozet: sıradaki öğün, gizli kahvaltıda öğle', () => {
 	st.date = '2026-09-28';
 	assert.doesNotMatch(Y.mealsHTML(st), /ymk-now/);
 	assert.match(Y.mealsHTML(Object.assign(st, { lang: 'en-GB' })), /<span class="ymk-hours">12:00–14:00<\/span>/);
+});
+
+test('gün adı ayrı parçada, dilin sırasıyla', () => {
+	const tr = state({ today: '2026-10-04', date: '2026-10-07', meal: 'ogle' });
+	assert.equal(Y.dayLabelHTML(tr), '<span>7 Ekim <span class="ymk-wd">Çarşamba</span></span>');
+	const en = Object.assign(state({ today: '2026-10-04', date: '2026-10-07', meal: 'ogle' }), { lang: 'en-GB', t: require('../languages/en-GB/yemekhane.json') });
+	assert.equal(Y.dayLabelHTML(en), '<span><span class="ymk-wd">Wednesday</span> 7 October</span>');
 });

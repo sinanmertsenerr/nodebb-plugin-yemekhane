@@ -56,18 +56,22 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     letter-spacing: -.01em;
 }
 
+/* Gün, onu değiştiren okların arasında. Sabit genişlik: gün değişince oklar yerinden kaymaz */
 .ymk-day {
-    min-width: 0;
+    min-width: 13.5em;
+    padding: 0 6px;
     overflow: hidden;
-    color: var(--ymk-muted);
-    font-size: 13.5px;
+    color: var(--ymk-ink2);
+    font-size: 14.5px;
+    font-weight: 500;
+    text-align: center;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .ymk-day b {
-    color: var(--ymk-ink2);
-    font-weight: 600;
+    color: var(--ymk-ink);
+    font-weight: 700;
 }
 
 .ymk-spacer {
@@ -92,7 +96,15 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 
 .ymk-nav {
     display: flex;
-    gap: 6px;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+}
+
+.ymk-head h2,
+.ymk-arrow,
+.ymk-today {
+    flex-shrink: 0;
 }
 
 .ymk-arrow {
@@ -462,6 +474,13 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
         display: flex;
     }
 
+    /* Dar alanda gün yazısı daralır, sığmazsa sonu üç noktayla kısalır */
+    .ymk-day {
+        min-width: 0;
+        padding: 0 4px;
+        font-size: 13.5px;
+    }
+
     .ymk-meals {
         grid-template-columns: minmax(0, 1fr);
     }
@@ -545,8 +564,10 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     }
 }
 
+/* Telefonda: "Bugün / Yarın / Dün" tek başına; başka günlerde gün adı gizlenir, tarih kesilmez */
 @container (max-width: 420px) {
-    .ymk-day b + span {
+    .ymk-day b + span,
+    .ymk-wd {
         display: none;
     }
 }

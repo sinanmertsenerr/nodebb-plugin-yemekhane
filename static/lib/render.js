@@ -134,15 +134,22 @@
 		return !(dayState(st, st.date) === 'none' && side === dir);
 	}
 
+	// Gün adı ayrı parçada: dar alanda gizlenir, tarih kesilmeden "7 Ekim" kalır. Sıra dile göre (tr: "7 Ekim Çarşamba")
+	function dateHTML(st) {
+		return formatter(st.lang, { day: 'numeric', month: 'long', weekday: 'long' }).formatToParts(toDate(st.date))
+			.map(p => (p.type === 'weekday' ? `<span class="ymk-wd">${esc(p.value)}</span>` : esc(p.value)))
+			.join('');
+	}
+
 	function dayLabelHTML(st) {
-		const text = formatter(st.lang, { day: 'numeric', month: 'long', weekday: 'long' }).format(toDate(st.date));
+		const text = dateHTML(st);
 		const today = st.slot.today;
 		const rel = {
 			[today]: st.t.today,
 			[addDays(today, 1)]: st.t.tomorrow,
 			[addDays(today, -1)]: st.t.yesterday,
 		}[st.date];
-		return rel ? `<b>${esc(rel)}</b><span> · ${esc(text)}</span>` : `<span>${esc(text)}</span>`;
+		return rel ? `<b>${esc(rel)}</b><span> · ${text}</span>` : `<span>${text}</span>`;
 	}
 
 	function tabsHTML(st) {
@@ -249,11 +256,11 @@
 			<script type="application/json" class="ymk-state">${stateJSON(st)}</script>
 			<div class="ymk-head">
 				<h2 id="${st.id}-h">${esc(st.title || st.t.title)}</h2>
-				<span class="ymk-day" aria-live="polite">${dayLabelHTML(st)}</span>
 				<span class="ymk-spacer"></span>
 				<button type="button" class="ymk-today"${back ? '' : ' hidden'}>${esc(st.slot.date === st.slot.today ? st.t.today : st.t.tomorrow)}</button>
 				<div class="ymk-nav">
 					<button type="button" class="ymk-arrow" data-dir="-1" aria-label="${esc(st.t['prev-day'])}"${canGo(st, -1) ? '' : ' disabled'}>${ICON.prev}</button>
+					<span class="ymk-day" aria-live="polite">${dayLabelHTML(st)}</span>
 					<button type="button" class="ymk-arrow" data-dir="1" aria-label="${esc(st.t['next-day'])}"${canGo(st, 1) ? '' : ' disabled'}>${ICON.next}</button>
 				</div>
 			</div>
