@@ -24,6 +24,10 @@ from collections import defaultdict
 DEFAULT_SOURCE = 'https://www.yasar.edu.tr/yemek-liste.pdf'
 DATE = re.compile(r'^(\d{1,2})[./](\d{1,2})[./]?(\d{4})?$')
 YEAR = re.compile(r'^\d{4}$')
+DAY = re.compile(r'^\d{1,2}$')
+# Başlıktaki tarih iki biçimde gelebiliyor: "1.09.2026 SALI" ya da "1 EKİM 2026 PERŞEMBE"
+MONTHS = {'OCAK': 1, 'ŞUBAT': 2, 'MART': 3, 'NİSAN': 4, 'MAYIS': 5, 'HAZİRAN': 6, 'TEMMUZ': 7,
+          'AĞUSTOS': 8, 'EYLÜL': 9, 'EKİM': 10, 'KASIM': 11, 'ARALIK': 12}
 NUM = re.compile(r'^\d+(/\d+)?$')
 
 # Kaynaktaki bilinen yazım hataları (büyük harfli hâlde düzeltilir)
@@ -33,16 +37,24 @@ UPPER_FIXES = [
     (r'ALMAN APATATES', 'ALMAN PATATES'), (r'MEYVELİGREK', 'MEYVELİ GREK'), (r'MAKSİKA', 'MEKSİKA'),
     (r'ŞEHRİYELİBULGUR', 'ŞEHRİYELİ BULGUR'), (r'KAŞARPEYNİRİ', 'KAŞAR PEYNİRİ'), (r'ÜÜZMLÜ', 'ÜZÜMLÜ'),
     (r'ŞEFTALİL KEK', 'ŞEFTALİLİ KEK'), (r'PAMADOR', 'POMODORO'), (r'FASÜLYE', 'FASULYE'),
-    (r'ÇORBA$', 'ÇORBASI'), (r'^MEVSİM SALATA$', 'MEVSİM SALATASI'), (r'^(TULUM|ÖRGÜ|KAŞAR) PEYNİR$', r'\1 PEYNİRİ'),
-    (r'^TEREYAĞ$', 'TEREYAĞI'), (r'^SU 1/2$', 'SU'), (r'\s*\+\s*', ' + '), (r'\s+', ' '),
+    # Ekim 2026
+    (r'CORDON BLUE', 'CORDON BLEU'), (r'\bSPANGLE\b', 'SUPANGLE'), (r'KÖPEOĞLU', 'KÖPOĞLU'), (r'\bKIY\.\s*', 'KIYMALI '),
+    (r'ARAB[İI]ATTA', 'ARRABBİATA'), (r'ŞN[İI]TZEL', 'ŞİNİTZEL'), (r'^DOMATES ÇORBASI?\s*\+\s*KAŞARLI$', 'KAŞARLI DOMATES ÇORBASI'),
+    (r'^TAH[İI]N HELVA$', 'TAHİN HELVASI'), (r'^SÜTLÜ İRMİK$', 'SÜTLÜ İRMİK TATLISI'), (r'^TAHİNLİ KEMALPAŞA$', 'TAHİNLİ KEMALPAŞA TATLISI'),
+    (r'\b(KALEM|TEPSİ) BÖREK$', r'\1 BÖREĞİ'),
+    (r'ÇORBA$', 'ÇORBASI'), (r'^MEVSİM SALATA$', 'MEVSİM SALATASI'), (r'^(TULUM|ÖRGÜ|KAŞAR|LABNE) PEYNİR$', r'\1 PEYNİRİ'),
+    (r'^TEREYAĞ$', 'TEREYAĞI'), (r'^SU 1/2$', 'SU'),
+    # İki yemeği ayıran tire de artı olur: "KÖFTE-PATATES", "ŞİNİTZEL - PATATES" → "KÖFTE + PATATES"
+    (r'(?<=\w)\s*-\s*(?=\w)', ' + '), (r'\s*\+\s*', ' + '), (r'\s+', ' '),
 ]
-TITLE_FIXES = [('Browni', 'Brownie'), ('Cheese Cake', 'Cheesecake')]
+TITLE_FIXES = [('Browni', 'Brownie'), ('Cheese Cake', 'Cheesecake'), ('Magnolıa', 'Magnolia'), ('Cafe De Paris', 'Café de Paris')]
 
 # Her gün verilen yanlar: widget bunları "Yanında" satırında toplar
 STAPLES = {'Yoğurt/Ayran', 'Mevsim Salatası', 'Mevsim Meyvesi (2 Çeşit)', 'Mevsim Meyvesi', 'Su', 'Çay', 'Süt',
            'Domates', 'Salatalık', 'Siyah Zeytin', 'Yeşil Zeytin', 'Tereyağı'}
 DESSERT = re.compile(r'Tatlısı|Kek\b|Sütlaç|Keşkül|Höşmerim|Şokola|Puding|Muhallebi|Revani|Baklava|Kadayıf|Brownie|'
-                     r'Cheesecake|Pasta|Kurabiye|Şekerpare|Kalburabastı|Supangle|Magnolia|Laz Böreği|Etimek')
+                     r'Cheesecake|Pasta|Kurabiye|Şekerpare|Kalburabastı|Supangle|Magnolia|Laz Böreği|Etimek|'
+                     r'Profiterol|Kazandibi|Tiramisu|Trileçe|Helvası|Uyutma|İnci Tanesi')
 SALAD = re.compile(r'Salata|Piyaz|Tabule')
 
 
@@ -150,23 +162,39 @@ def meal_of_page(ws):
     return None, False
 
 
+def date_at(line, j):
+    """j'deki sözcükte bir gün başlığı başlıyorsa (gün, ay, yıl, kullanılan sözcük sayısı) döner."""
+    t = line[j]['t']
+    m = DATE.match(t)
+    if m:
+        return int(m.group(1)), int(m.group(2)), m.group(3), 1
+    if DAY.match(t) and j + 1 < len(line) and line[j + 1]['t'] in MONTHS:
+        return int(t), MONTHS[line[j + 1]['t']], None, 2
+    return None
+
+
 def header_days(line):
     days = []
-    for j, w in enumerate(line):
-        m = DATE.match(w['t'])
-        if not m:
+    j = 0
+    while j < len(line):
+        found = date_at(line, j)
+        if not found:
+            j += 1
             continue
-        year = m.group(3)
-        span = [w]
-        for k in range(j + 1, len(line)):
+        d, mo, year, used = found
+        span = line[j:j + used]
+        k = j + used
+        while k < len(line):
             t = line[k]['t']
-            if t in ('ALERJEN', 'KALORİ') or DATE.match(t):
+            if t in ('ALERJEN', 'KALORİ') or date_at(line, k):
                 break
             if not year and YEAR.match(t):
                 year = t
             span.append(line[k])
-        days.append({'d': int(m.group(1)), 'm': int(m.group(2)), 'y': int(year) if year else None,
+            k += 1
+        days.append({'d': d, 'm': mo, 'y': int(year) if year else None,
                      'nx': (span[0]['x0'] + span[-1]['x1']) / 2})
+        j = k
     return days
 
 
