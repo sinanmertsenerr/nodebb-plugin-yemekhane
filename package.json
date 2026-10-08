@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-yemekhane",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Daily cafeteria (yemekhane) menu widget for NodeBB: breakfast, lunch and dinner with calories and prices",
   "main": "library.js",
   "repository": {

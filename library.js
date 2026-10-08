@@ -6,6 +6,7 @@ const meta = nodebb.require('./src/meta');
 const user = nodebb.require('./src/user');
 const languages = nodebb.require('./src/languages');
 const routeHelpers = nodebb.require('./src/routes/helpers');
+const controllerHelpers = nodebb.require('./src/controllers/helpers');
 
 const menu = require('./lib/menu');
 const Yemekhane = require('./static/lib/render');
@@ -15,9 +16,17 @@ const strings = new Map();
 let app;
 let seq = 0;
 
+// Menünün kendi sayfası: arama motorları "yemekhane menüsü" aramasında bu adresi bulur.
+// Bileşenin başlığı buraya bağlanır.
+const PAGE_PATH = '/yemekhane';
+const WEEK_DAYS = 7;
+const HTML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' };
+const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => HTML_ESC[c]);
+
 plugin.init = async function (params) {
 	app = params.app;
 	routeHelpers.setupAdminPageRoute(params.router, '/admin/plugins/yemekhane', renderAdminPage);
+	routeHelpers.setupPageRoute(params.router, PAGE_PATH, [], (req, res, next) => renderPage(req, res).catch(next));
 };
 
 // /api/v3/plugins/yemekhane/aylar/:ay — okuma herkese açık, yazma ve silme sadece yöneticiye
@@ -77,37 +86,118 @@ plugin.renderWidget = async function (widget) {
 	if (widget.data.onlyHome === 'on' && !home) {
 		return null;
 	}
-	const available = await menu.listMonths();
-	if (!available.length) {
-		return null;
-	}
-
-	const hours = Yemekhane.normalizeHours(await menu.getHours());
-	const slot = Yemekhane.slotNow(null, hours);
-	const ay = slot.date.slice(0, 7);
-	const month = await menu.getMonth(ay);
-	const lang = getLang(widget);
-	seq = (seq + 1) % 1e6;
-
-	const st = {
-		id: `ymk-${seq}`,
-		t: await getStrings(lang),
-		lang,
+	const st = await buildState({
+		lang: getLang(widget),
 		title: widget.data.title || '',
-		slot,
-		hours,
-		date: slot.date,
 		opts: {
 			hideBreakfast: widget.data.hideBreakfast === 'on',
 			hidePrices: widget.data.hidePrices === 'on',
 		},
-		available,
-		months: month ? { [ay]: Yemekhane.nearDays(publicMonth(month), slot.date) } : {},
 		hideCategories: home && widget.data.hideCategories === 'on',
-	};
-	st.meal = Yemekhane.defaultMeal(st);
+		pageUrl: `${nconf.get('relative_path')}${PAGE_PATH}`,
+	});
+	if (!st) {
+		return null;
+	}
 	widget.html = Yemekhane.section(st);
 	return widget;
+};
+
+// Bileşenin ve sayfanın ilk görünümü: sıradaki öğünün günü ve çevresindeki günler. Menü yüklenmediyse null.
+async function buildState({ lang, title, opts, hideCategories, pageUrl }) {
+	const available = await menu.listMonths();
+	if (!available.length) {
+		return null;
+	}
+	const hours = Yemekhane.normalizeHours(await menu.getHours());
+	const slot = Yemekhane.slotNow(null, hours);
+	const ay = slot.date.slice(0, 7);
+	const month = await menu.getMonth(ay);
+	seq = (seq + 1) % 1e6;
+	const st = {
+		id: `ymk-${seq}`,
+		t: await getStrings(lang),
+		lang,
+		title,
+		slot,
+		hours,
+		date: slot.date,
+		opts,
+		available,
+		months: month ? { [ay]: Yemekhane.nearDays(publicMonth(month), slot.date) } : {},
+		hideCategories,
+		pageUrl,
+	};
+	st.meal = Yemekhane.defaultMeal(st);
+	return st;
+}
+
+// /yemekhane: günün menüsü (bileşenle aynı, canlı) ve altında haftanın menüsü düz yazı olarak.
+async function renderPage(req, res) {
+	const lang = (res.locals.config && res.locals.config.userLang) || meta.config.defaultLang || 'en-GB';
+	const t = await getStrings(lang);
+	const st = await buildState({ lang, title: t.title, opts: {}, hideCategories: false, pageUrl: '' });
+	const description = t['page.description'];
+	res.locals.metaTags = [
+		{ name: 'description', content: description },
+		{ property: 'og:description', content: description },
+		{ property: 'og:type', content: 'website' },
+	];
+	res.locals.linkTags = [{ rel: 'canonical', href: `${nconf.get('url')}${PAGE_PATH}` }];
+	res.render('yemekhane', {
+		title: t['page.title'],
+		breadcrumbs: controllerHelpers.buildBreadcrumbs([{ text: t['page.title'] }]),
+		heading: t['page.title'],
+		lede: t['page.lede'],
+		sectionHtml: st ? Yemekhane.section(st) : `<p class="ymk-empty">${escapeHtml(t['page.empty'])}</p>`,
+		weekHtml: st ? await weekHtml(st) : '',
+	});
+}
+
+// Sıradaki öğünün gününden başlayan yedi gün; her öğünün ana yemekleri (her gün çıkanlar hariç)
+async function weekHtml(st) {
+	const dates = Array.from({ length: WEEK_DAYS }, (_, i) => Yemekhane.addDays(st.slot.date, i));
+	const ays = [...new Set(dates.map(d => d.slice(0, 7)))].filter(ay => st.available.includes(ay));
+	const months = new Map(await Promise.all(ays.map(async ay => [ay, await menu.getMonth(ay)])));
+	const days = dates.map((date) => {
+		const month = months.get(date.slice(0, 7));
+		return { date, day: month && month.gunler && month.gunler[date] };
+	}).filter(x => x.day);
+	if (!days.length) {
+		return '';
+	}
+	const meals = Yemekhane.visibleMeals(st.opts);
+	const mealName = { kahvalti: st.t.breakfast, ogle: st.t.lunch, aksam: st.t.dinner };
+	const label = (iso) => {
+		try {
+			return new Intl.DateTimeFormat(st.lang, { day: 'numeric', month: 'long', weekday: 'long', timeZone: 'UTC' }).format(new Date(`${iso}T12:00:00Z`));
+		} catch (err) {
+			return iso;
+		}
+	};
+	return `<section class="ymk-week" aria-labelledby="ymk-week-h">
+		<h2 id="ymk-week-h">${escapeHtml(st.t['page.week'])}</h2>
+		<div class="ymk-week-days">${days.map(({ date, day }) => `<article class="ymk-week-day">
+			<h3><time datetime="${date}">${escapeHtml(label(date))}</time></h3>
+			<dl>${meals.map((m) => {
+				const items = (day[m] || []).filter(item => item.tur !== 'sabit').map(item => item.ad);
+				return items.length ? `<div><dt>${escapeHtml(mealName[m])}</dt><dd>${escapeHtml(items.join(', '))}</dd></div>` : '';
+			}).join('')}</dl>
+		</article>`).join('')}</div>
+	</section>`;
+}
+
+// ACP > Navigasyon'da "Yemekhane" seçilebilsin
+plugin.addNavigation = async function (items) {
+	items.push({
+		route: PAGE_PATH,
+		title: 'Yemekhane',
+		enabled: false,
+		iconClass: 'fa-utensils',
+		textClass: '',
+		text: 'Yemekhane',
+	});
+	return items;
 };
 
 async function renderAdminPage(req, res) {

@@ -255,7 +255,7 @@
 		return `<section class="ymk" id="${st.id}" aria-labelledby="${st.id}-h" data-ymk${st.hideCategories ? ' data-hide-categories' : ''}>
 			<script type="application/json" class="ymk-state">${stateJSON(st)}</script>
 			<div class="ymk-head">
-				<h2 id="${st.id}-h">${esc(st.title || st.t.title)}</h2>
+				<h2 id="${st.id}-h">${st.pageUrl ? `<a href="${esc(st.pageUrl)}">${esc(st.title || st.t.title)}</a>` : esc(st.title || st.t.title)}</h2>
 				<span class="ymk-spacer"></span>
 				<button type="button" class="ymk-today"${back ? '' : ' hidden'}>${esc(st.slot.date === st.slot.today ? st.t.today : st.t.tomorrow)}</button>
 				<div class="ymk-nav">

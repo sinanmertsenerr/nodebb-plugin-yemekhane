@@ -1,6 +1,7 @@
 /* Yemekhane: forumun renk ve yazı değişkenlerini kullanır, koyu temaya uyar */
 /* Yazı açıkta siyah, koyuda beyaz; ikincil yazı aynı rengin saydamı, her iki temada da 7:1 üstü */
-.ymk {
+.ymk,
+.ymk-page {
     --ymk-line: rgba(0, 0, 0, .12);
     --ymk-hover: rgba(0, 0, 0, .045);
     --ymk-ink: #000;
@@ -13,7 +14,8 @@
     margin: 4px 0 24px;
 }
 
-[data-theme="dark"] .ymk {
+[data-theme="dark"] .ymk,
+[data-theme="dark"] .ymk-page {
     --ymk-line: rgba(255, 255, 255, .12);
     --ymk-hover: rgba(255, 255, 255, .07);
     --ymk-ink: #fff;
@@ -578,3 +580,87 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
         transition: none;
     }
 }
+
+/* Başlık sayfaya bağlanır (bileşende): görünüm aynı kalır */
+.ymk-head h2 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.ymk-head h2 a:hover {
+    text-decoration: underline;
+}
+
+/* ---------- /yemekhane sayfası ---------- */
+.ymk-page {
+    max-width: 1040px;
+    margin: 12px auto 32px;
+}
+
+.ymk-page-head {
+    margin-bottom: 16px;
+}
+
+.ymk-page-head h1 {
+    margin: 0;
+    color: var(--ymk-ink);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -.02em;
+}
+
+.ymk-page-head p {
+    margin: 6px 0 0;
+    color: var(--ymk-muted);
+    font-size: 15px;
+}
+
+.ymk-week h2 {
+    margin: 8px 0 12px;
+    color: var(--ymk-ink);
+    font-size: 17px;
+    font-weight: 600;
+}
+
+.ymk-week-days {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.ymk-week-day {
+    padding: 14px 16px;
+    border: 1px solid var(--ymk-line);
+    border-radius: 12px;
+    background: var(--ymk-card);
+}
+
+.ymk-week-day h3 {
+    margin: 0 0 8px;
+    color: var(--ymk-ink);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.ymk-week-day dl {
+    margin: 0;
+}
+
+.ymk-week-day dl > div + div {
+    margin-top: 6px;
+}
+
+.ymk-week-day dt {
+    color: var(--ymk-muted);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.ymk-week-day dd {
+    margin: 2px 0 0;
+    color: var(--ymk-ink2);
+    font-size: 14px;
+}
+

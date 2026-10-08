@@ -23,6 +23,11 @@
 	"a-la-carte-prices": "Tek tek fiyatlar",
 	"allergens": "Tüm yemekler alerjen içerebilir.",
 	"monthly-pdf": "Aylık menü (PDF)",
+	"page.title": "Yemekhane menüsü",
+	"page.lede": "Bugünün ve bu haftanın menüsü: kahvaltı, öğle ve akşam yemeği, kaloriler ve fiyatlar.",
+	"page.week": "Bu haftanın menüsü",
+	"page.empty": "Menü henüz yüklenmedi.",
+	"page.description": "Yemekhanede bugün ne var? Kahvaltı, öğle ve akşam menüsü, kaloriler, set menü ve tek tek fiyatlar. Her gün güncel.",
 
 	"widget.name": "Yemekhane",
 	"widget.description": "Günün menüsü: kahvaltı, öğle ve akşam; kalori ve fiyatlarla",

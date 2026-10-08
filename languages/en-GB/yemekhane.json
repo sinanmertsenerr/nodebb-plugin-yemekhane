@@ -23,6 +23,11 @@
 	"a-la-carte-prices": "À la carte prices",
 	"allergens": "All dishes may contain allergens.",
 	"monthly-pdf": "Monthly menu (PDF)",
+	"page.title": "Cafeteria menu",
+	"page.lede": "Today's and this week's menu: breakfast, lunch and dinner, with calories and prices.",
+	"page.week": "This week's menu",
+	"page.empty": "The menu hasn't been uploaded yet.",
+	"page.description": "What's on at the cafeteria today? Breakfast, lunch and dinner, with calories, the set menu and à la carte prices. Updated daily.",
 
 	"widget.name": "Cafeteria menu",
 	"widget.description": "Today's menu: breakfast, lunch and dinner with calories and prices",
