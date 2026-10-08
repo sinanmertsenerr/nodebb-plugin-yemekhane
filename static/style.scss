@@ -592,7 +592,10 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 }
 
 /* ---------- /yemekhane sayfası ---------- */
+/* Renk değişkenleri .ymk ile ortak; kapsayıcı sorgusu yalnızca bileşende (sayfada genişliği sıfıra çeker) */
 .ymk-page {
+    container-type: normal;
+    width: 100%;
     max-width: 1040px;
     margin: 12px auto 32px;
 }
