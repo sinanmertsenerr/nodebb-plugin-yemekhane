@@ -10,7 +10,7 @@
     --ymk-card: #fff;
     --ymk-accent: var(--yu-solid, #1a73e8);
     --ymk-tint: rgba(26, 115, 232, .06);
-    container-type: inline-size;
+    container: ymk / inline-size;
     margin: 4px 0 24px;
 }
 
@@ -187,6 +187,7 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 }
 
 .ymk-meal {
+    container: ymk-meal / inline-size;
     display: flex;
     flex-direction: column;
     min-width: 0;
@@ -205,7 +206,7 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 6px 8px;
+    gap: 4px 8px;
     margin-bottom: 10px;
     color: var(--ymk-ink);
     font-size: 14px;
@@ -244,7 +245,6 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 }
 
 /* Beyaz yazı düz mavi üstünde (#1a73e8, 4.6:1) */
-/* Yer kalmazsa alt satıra iner: dar kartta ("Yurt" etiketi, saat) kartın dışına taşmaz */
 .ymk-now {
     white-space: nowrap;
     padding: 2px 9px;
@@ -474,7 +474,7 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     text-decoration: underline !important;
 }
 
-@container (max-width: 620px) {
+@container ymk (max-width: 620px) {
     .ymk-tabs {
         display: flex;
     }
@@ -563,14 +563,14 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     }
 }
 
-@container (min-width: 621px) and (max-width: 860px) {
+@container ymk (min-width: 621px) and (max-width: 860px) {
     .ymk-alc dl {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 /* Telefonda: "Bugün / Yarın / Dün" tek başına; başka günlerde gün adı gizlenir, tarih kesilmez */
-@container (max-width: 420px) {
+@container ymk (max-width: 420px) {
     .ymk-day b + span,
     .ymk-wd {
         display: none;
@@ -668,5 +668,19 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
     margin: 2px 0 0;
     color: var(--ymk-ink2);
     font-size: 14px;
+}
+
+/* Dar kartta (üç öğün yan yana) ad, etiket ve "Sıradaki" tek satıra sığmıyor: saat başlığın altına iner,
+   rozet sağ üstte kalır. Üç kart aynı genişlikte olduğundan hepsi aynı düzende görünür. */
+@container ymk-meal (max-width: 300px) {
+    .ymk-now {
+        margin-left: auto;
+    }
+
+    .ymk-hours {
+        order: 1;
+        flex-basis: 100%;
+        margin-left: 0;
+    }
 }
 
