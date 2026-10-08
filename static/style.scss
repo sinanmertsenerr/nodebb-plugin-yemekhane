@@ -595,34 +595,24 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 }
 
 /* ---------- /yemekhane sayfası ---------- */
-/* Renk değişkenleri .ymk ile ortak; kapsayıcı sorgusu yalnızca bileşende (sayfada genişliği sıfıra çeker) */
+/* Renk değişkenleri .ymk ile ortak. width: 100% şart: kapsayıcı olunca içerik genişliği belirlemez */
 .ymk-page {
-    container-type: normal;
+    container: ymk-page / inline-size;
     width: 100%;
     max-width: 1040px;
     margin: 12px auto 32px;
 }
 
-.ymk-page-head {
-    margin-bottom: 16px;
-}
-
-.ymk-page-head h1 {
+.ymk-page .ymk-head h1 {
     margin: 0;
     color: var(--ymk-ink);
-    font-size: 28px;
+    font-size: 26px;
     font-weight: 700;
     letter-spacing: -.02em;
 }
 
-.ymk-page-head p {
-    margin: 6px 0 0;
-    color: var(--ymk-muted);
-    font-size: 15px;
-}
-
 .ymk-week h2 {
-    margin: 8px 0 12px;
+    margin: 28px 0 12px;
     color: var(--ymk-ink);
     font-size: 17px;
     font-weight: 600;
@@ -630,7 +620,7 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 
 .ymk-week-days {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
 }
 
@@ -658,10 +648,8 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
 
 .ymk-week-day dt {
     color: var(--ymk-muted);
-    font-size: 12px;
+    font-size: 12.5px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: .04em;
 }
 
 .ymk-week-day dd {
@@ -681,6 +669,19 @@ body:has(.ymk[data-hide-categories]) .row:has(> div > .categories-list):has(> [d
         order: 1;
         flex-basis: 100%;
         margin-left: 0;
+    }
+}
+
+/* Altı gün: geniş ekranda 3+3, ortada 2+2+2, telefonda alt alta */
+@container ymk-page (max-width: 760px) {
+    .ymk-week-days {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@container ymk-page (max-width: 480px) {
+    .ymk-week-days {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 

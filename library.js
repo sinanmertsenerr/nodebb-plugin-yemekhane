@@ -6,7 +6,6 @@ const meta = nodebb.require('./src/meta');
 const user = nodebb.require('./src/user');
 const languages = nodebb.require('./src/languages');
 const routeHelpers = nodebb.require('./src/routes/helpers');
-const controllerHelpers = nodebb.require('./src/controllers/helpers');
 
 const menu = require('./lib/menu');
 const Yemekhane = require('./static/lib/render');
@@ -19,7 +18,7 @@ let seq = 0;
 // Menünün kendi sayfası: arama motorları "yemekhane menüsü" aramasında bu adresi bulur.
 // Bileşenin başlığı buraya bağlanır.
 const PAGE_PATH = '/yemekhane';
-const WEEK_DAYS = 7;
+const WEEK_DAYS = 6;
 const HTML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' };
 const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => HTML_ESC[c]);
 
@@ -132,11 +131,14 @@ async function buildState({ lang, title, opts, hideCategories, pageUrl }) {
 	return st;
 }
 
-// /yemekhane: günün menüsü (bileşenle aynı, canlı) ve altında haftanın menüsü düz yazı olarak.
+// /yemekhane: günün menüsü (bileşenle aynı, canlı, başlığı sayfanın h1'i) ve altında sonraki günler düz yazı olarak.
 async function renderPage(req, res) {
 	const lang = (res.locals.config && res.locals.config.userLang) || meta.config.defaultLang || 'en-GB';
 	const t = await getStrings(lang);
 	const st = await buildState({ lang, title: t.title, opts: {}, hideCategories: false, pageUrl: '' });
+	if (st) {
+		st.h1 = true;
+	}
 	const description = t['page.description'];
 	res.locals.metaTags = [
 		{ name: 'description', content: description },
@@ -146,17 +148,14 @@ async function renderPage(req, res) {
 	res.locals.linkTags = [{ rel: 'canonical', href: `${nconf.get('url')}${PAGE_PATH}` }];
 	res.render('yemekhane', {
 		title: t['page.title'],
-		breadcrumbs: controllerHelpers.buildBreadcrumbs([{ text: t['page.title'] }]),
-		heading: t['page.title'],
-		lede: t['page.lede'],
 		sectionHtml: st ? Yemekhane.section(st) : `<p class="ymk-empty">${escapeHtml(t['page.empty'])}</p>`,
 		weekHtml: st ? await weekHtml(st) : '',
 	});
 }
 
-// Sıradaki öğünün gününden başlayan yedi gün; her öğünün ana yemekleri (her gün çıkanlar hariç)
+// Üstte gösterilen günden sonraki altı gün; her öğünün ana yemekleri (her gün çıkanlar hariç)
 async function weekHtml(st) {
-	const dates = Array.from({ length: WEEK_DAYS }, (_, i) => Yemekhane.addDays(st.slot.date, i));
+	const dates = Array.from({ length: WEEK_DAYS }, (_, i) => Yemekhane.addDays(st.slot.date, i + 1));
 	const ays = [...new Set(dates.map(d => d.slice(0, 7)))].filter(ay => st.available.includes(ay));
 	const months = new Map(await Promise.all(ays.map(async ay => [ay, await menu.getMonth(ay)])));
 	const days = dates.map((date) => {
